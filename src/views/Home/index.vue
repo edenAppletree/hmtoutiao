@@ -3,7 +3,9 @@
     <!-- 头部导航 -->
     <van-nav-bar class="navbar">
       <template #title>
-        <van-button round> <van-icon name="search" />搜索 </van-button>
+        <van-button round @click="goSearch">
+          <van-icon name="search" />搜索
+        </van-button>
       </template>
     </van-nav-bar>
     <!-- tab导航栏 -->
@@ -12,7 +14,7 @@
         <ArticleList :id="item.id"></ArticleList>
       </van-tab>
       <!-- 更多的按钮 -->
-      <span class="toutiao toutiao-gengduo" @click="showPOpup"></span>
+      <span class="toutiao toutiao-gengduo" @click="showPopup"></span>
     </van-tabs>
     <!-- 弹框 -->
     <editChannelPopup
@@ -68,7 +70,7 @@ export default {
         this.$toast.fail('请重新获取频道列表')
       }
     },
-    showPOpup() {
+    showPopup() {
       this.$refs.popup.isShow = true
     },
     async delMyChannel(id) {
@@ -102,6 +104,9 @@ export default {
         }
       }
       this.$toast.success('添加频道成功')
+    },
+    goSearch() {
+      this.$router.push('/search')
     }
   },
   components: {

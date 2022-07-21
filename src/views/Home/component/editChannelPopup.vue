@@ -55,7 +55,7 @@ import { getAllChannels } from '@/api/channel'
 export default {
   data() {
     return {
-      isShow: true,
+      isShow: false,
       allChannels: [],
       isEdit: false
     }
@@ -73,7 +73,7 @@ export default {
     async getAllChannels() {
       const { data } = await getAllChannels()
       this.allChannels = data.data.channels
-      console.log(this.allChannels)
+      // console.log(this.allChannels)
     },
     onDelMyChannel(channel, index) {
       // 边缘情况的判断
