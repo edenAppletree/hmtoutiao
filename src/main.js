@@ -9,6 +9,8 @@ import Vant from 'vant'
 import 'vant/lib/index.css'
 // 引入flexible
 import 'amfe-flexible'
+// 引入文章详情css
+import '@/assets/css/news.css'
 
 Vue.config.productionTip = false
 Vue.use(Vant)

@@ -16,6 +16,7 @@
       :keywords="keywords"
       @selectedContent="selectedContent"
       @newHistoryList="getNewHistoryList"
+      :histryList="histryList"
     ></component>
   </div>
 </template>
@@ -29,7 +30,7 @@ export default {
     return {
       keywords: '',
       isShowSearchResult: false,
-      histryList: []
+      histryList: JSON.parse(localStorage.getItem('history')) || []
     }
   },
   components: {
@@ -57,7 +58,9 @@ export default {
       if (!this.histryList.includes(this.keywords)) {
         this.histryList.unshift(this.keywords)
       } else {
-        this.histryList = this.histryList.filter((item) => item !== this.keywords)
+        this.histryList = this.histryList.filter(
+          (item) => item !== this.keywords
+        )
         this.histryList.unshift(this.keywords)
         console.log(this.histryList)
       }
@@ -79,7 +82,7 @@ export default {
     getNewHistoryList(val) {
       this.histryList = val
       // 最新搜索历史列表放入本地存储
-      localStorage.setItem('history', JSON.stringify(this.histryList))
+      // localStorage.setItem('history', JSON.stringify(this.histryList))
     }
   }
 }

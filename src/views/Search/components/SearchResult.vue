@@ -2,18 +2,18 @@
   <div>
     <van-list
       v-model="loading"
+      offset="100"
       :finished="isFinished"
       :error.sync="error"
       error-text="出错了，请重新加载"
       finished-text="没有更多了~"
-      success-text="刷新成功"
       @load="loadNextPage"
-      offset="0"
+      :immediate-check="true"
     >
-      <van-cell v-for="item in resultList" :key="item.art_id">
-        <template #title>
+      <van-cell :title="item.title" v-for="(item, index) in resultList" :key="index">
+        <!-- <template #title>
           <span v-html="item.title"></span>
-        </template>
+        </template> -->
       </van-cell>
     </van-list>
   </div>
@@ -28,7 +28,8 @@ export default {
       per_page: '',
       loading: false,
       isFinished: false,
-      error: false
+      error: false,
+      page: 1
     }
   },
   props: {
@@ -44,13 +45,10 @@ export default {
     // 页面一开始，加载第一页数据
     async getSearchResult() {
       try {
-        // if (Math.random() < 0.6) {
-        //   throw new Error('出错了')
-        // }
         const res = await getSearchResult(this.keywords)
         this.resultList = res.data.data.results
         // 获得当前的页面数量
-        this.per_page = res.data.data.per_page
+        // this.per_page = res.data.data.per_page
       } catch (error) {
         // 获取状态码
         const status = error.response.status
@@ -63,8 +61,11 @@ export default {
     },
     // 加载下一页数据
     async loadNextPage() {
+      console.log(2)
+      // this.loading = false
       try {
-        const res = await getSearchResult(this.keywords, this.per_page)
+        const res = await getSearchResult(this.keywords, this.page)
+        this.page++
         if (res.data.data.results.length < 10) {
           this.isFinished = true
         } else {
@@ -72,12 +73,11 @@ export default {
           this.resultList.push(...res.data.data.results)
         }
         // 更新数据
-        this.per_page = res.data.data.per_page
+        // this.per_page = res.data.data.per_page
       } catch (error) {
         this.error = true
       } finally {
         this.loading = false
-        this.refreshLoading = false
       }
     }
   }

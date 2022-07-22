@@ -6,7 +6,8 @@
         <template #default>
           <van-icon name="delete-o" v-if="isShow" @click="isShow = false" />
           <div v-else>
-            <span @click="allDel">全部删除</span> <span @click="isShow=true">完成</span>
+            <span @click="allDel">全部删除</span>
+            <span @click="isShow = true">完成</span>
           </div>
         </template>
       </van-cell>
@@ -33,13 +34,21 @@
 export default {
   data() {
     return {
-      histryList: [],
+      // histryList: [],
       isShow: true
     }
   },
-  created() {
-    this.histryList = JSON.parse(localStorage.getItem('history'))
+  props: {
+    histryList: {
+      type: Array
+    }
   },
+  mounted() {
+    console.log(this.histryList)
+  },
+  // created() {
+  //   this.histryList = JSON.parse(localStorage.getItem('history'))
+  // },
   methods: {
     addToInput(index) {
       // 点击列表内容，把索引号对应内容传给输入框的v-model
@@ -47,16 +56,16 @@ export default {
       this.$emit('selectedContent', selected)
     },
     allDel() {
-      this.histryList = []
+      this.$parent.histryList = []
       // 数据传进本地存储
-      this.$emit('newHistoryList', this.histryList)
+      // this.$emit('newHistoryList', this.histryList)
     },
     delMyself(index) {
       // 找到点击的对应索引号进行删除
       this.histryList.findIndex((i) => i === index)
-      this.histryList.splice(index, 1)
+      this.$parent.histryList.splice(index, 1)
       // 还没有删除本地
-      this.$emit('newHistoryList', this.histryList)
+      // this.$emit('newHistoryList', this.histryList)
     }
   }
 }
