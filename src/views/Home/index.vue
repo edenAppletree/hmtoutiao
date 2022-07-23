@@ -42,7 +42,7 @@ export default {
   name: 'Home',
   data() {
     return {
-      active: 2,
+      active: 0,
       myChannels: []
     }
   },

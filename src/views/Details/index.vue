@@ -1,7 +1,7 @@
 <template>
   <div class="bg">
     <!-- 头部导航 -->
-    <van-nav-bar title="黑马头条" left-arrow @click-left="onClickLeft" />
+    <van-nav-bar title="黑马头条" left-arrow @click-left="onClickLeft" fixed />
     <!-- 文章标题 -->
     <div class="title">
       <h5>{{ contentObj.title }}</h5>
@@ -44,28 +44,58 @@
         <p>正文结束</p>
         <div></div>
       </div>
-      <!-- 评论区 -->
+      <!-- 评论区 组件 -->
+      <CommentStyle
+        v-for="item in commentList"
+        :key="item.com_id"
+        :item="item"
+        :art_id="id"
+        :style="{ padding: '10px' }"
+      ></CommentStyle>
     </van-list>
     <!-- 底栏功能区 -->
-    <van-tabbar fixed class="tab">
+    <van-tabbar class="tab">
+      <!-- 发送评论 -->
       <van-tabbar-item class="first">
-        <input type="text" placeholder="写评论" class="ipt" />
+        <input
+          type="text"
+          placeholder="写评论"
+          class="ipt"
+          v-model="commentVal"
+          @input.enter="postComment(commentVal)"
+        />
       </van-tabbar-item>
       <van-tabbar-item
         icon="comment-o"
         :badge="contentObj.comm_count"
         class="commentIcon"
       ></van-tabbar-item>
-      <van-tabbar-item icon="star-o"></van-tabbar-item>
-      <van-tabbar-item icon="good-job-o"></van-tabbar-item>
+      <van-tabbar-item
+        icon="star"
+        @click="collectFn(id)"
+        :class="{ changeRed: isCollect === true }"
+      ></van-tabbar-item>
+      <van-tabbar-item
+        icon="good-job"
+        :class="{ changeRed: isLike === 1 }"
+        @click="likeArt(id)"
+      ></van-tabbar-item>
       <van-tabbar-item icon="share-o"></van-tabbar-item>
     </van-tabbar>
   </div>
 </template>
 
 <script>
-import { getNewsDetails, getComments } from '@/api'
+import {
+  getNewsDetails,
+  getComments,
+  collectArt,
+  cancelCollectArt,
+  likeArt,
+  cancelLikeArt
+} from '@/api'
 import dayjs from '@/utils/dayjs'
+import CommentStyle from '@/views/Details/components/CommentStyle'
 export default {
   data() {
     return {
@@ -74,8 +104,14 @@ export default {
       loading: false,
       finished: false,
       isShow: true,
-      commentList: []
+      commentList: [],
+      commentVal: '',
+      isCollect: '',
+      isLike: ''
     }
+  },
+  components: {
+    CommentStyle
   },
   computed: {
     relativeTime() {
@@ -91,20 +127,59 @@ export default {
       this.id = this.$route.query.art_id
       const res = await getNewsDetails(this.id)
       this.contentObj = res.data.data
-      //   console.log(this.contentObj)
+      // console.log(this.contentObj)
+      this.isCollect = this.contentObj.is_collected
+      this.isLike = this.contentObj.attitude
     },
     onLoad() {
       this.loading = true
       this.finished = true
     },
+    // 获取评论或评论回复
     async getComments() {
       const res = await getComments('a', this.id)
       this.commentList = res.data.data.results
+      console.log(res.data.data)
+    },
+    // 发送评论
+    postComment(val) {
+      console.log(val)
+    },
+    // 收藏文章 或 取消收藏
+    async collectFn(artId) {
+      this.isCollect = !this.isCollect
+      if (this.isCollect) {
+        // 收藏文章
+        await collectArt(artId)
+        this.$toast.success('收藏文章成功')
+      } else {
+        // 取消收藏
+        await cancelCollectArt(artId)
+        this.$toast.success('取消收藏成功')
+      }
+    },
+    // 点赞文章 或 取消点赞
+    async likeArt(artId) {
+      if (this.isLike !== 1) {
+        // 点赞文章
+        await likeArt(artId)
+        this.$toast.success('点赞成功')
+        this.isLike = 1
+      } else if (this.isLike === 1) {
+        // 取消点赞
+        await cancelLikeArt(artId)
+        this.$toast.success('取消点赞成功')
+        this.isLike = 0
+      }
     }
   },
   created() {
     this.getNewsDetails()
     this.getComments()
+    // 获取收藏列表
+    // console.log(getUserCollectionList())
+    // console.log(this.isCollect)
+    // console.log(this.isLike)
   }
 }
 </script>
@@ -112,6 +187,10 @@ export default {
 <style lang="less" scoped>
 .bg {
   margin-bottom: 100px;
+}
+// 收藏样式变红
+.changeRed {
+  color: red;
 }
 // 头部导航样式
 :deep(.van-nav-bar__content) {
@@ -125,6 +204,7 @@ export default {
 }
 // 文章标题样式
 .title {
+  margin-top: 150px;
   padding: 0 30px;
   h5 {
     margin: 40px 0;
@@ -191,12 +271,12 @@ export default {
   border-top: 1px solid #d8d8d8;
   .first {
     flex: 4;
-    margin-top: -10px;
+    margin-bottom: 10px;
     .ipt {
       width: 280px;
       height: 44px;
       border-radius: 22px;
-      border: 2px solid #efefef;
+      border: 1px solid #efefef;
       font-size: 30px;
       color: #a7a7af;
       text-align: center;
@@ -204,6 +284,7 @@ export default {
   }
   :deep(.van-icon) {
     font-size: 40px;
+    padding: 0 20px;
   }
   :deep(.van-icon-comment-o:before) {
     margin-top: 10px;
