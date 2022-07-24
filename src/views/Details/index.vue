@@ -149,7 +149,7 @@ export default {
       this.id = this.$route.query.art_id
       const res = await getNewsDetails(this.id)
       this.contentObj = res.data.data
-      console.log(this.contentObj)
+      // console.log(this.contentObj)
       this.isCollect = this.contentObj.is_collected
       this.isLike = this.contentObj.attitude
       this.isShow = this.contentObj.is_followed
@@ -160,7 +160,7 @@ export default {
     },
     // 关注用户 或 取消关注
     async getFollowed(autid) {
-      console.log(autid)
+      // console.log(autid)
       this.isShow = !this.isShow
       if (this.isShow) {
         await getFollowed(autid)
@@ -339,7 +339,6 @@ export default {
   }
   :deep(.van-icon) {
     font-size: 40px;
-    padding: 0 20px;
   }
   :deep(.van-icon-comment-o:before) {
     margin-top: 10px;

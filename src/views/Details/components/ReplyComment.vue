@@ -32,7 +32,11 @@
             </div>
           </template>
           <template #default>
-            <van-icon name="good-job-o" />
+            <van-icon
+              name="good-job-o"
+              @click="likeHostFn(replyObj)"
+              :class="{ changeRed: isLikeHost === true }"
+            />
             <span> {{ replyObj.like_count ? replyObj.like_count : '赞' }}</span>
           </template>
         </van-cell>
@@ -132,7 +136,8 @@ export default {
       commentReply: [],
       isLike: '',
       replyVal: '',
-      isWrite: false
+      isWrite: false,
+      isLikeHost: ''
     }
   },
   props: {
@@ -165,6 +170,19 @@ export default {
       this.loading = false
       this.finished = false
     },
+    // 对楼主评论点赞
+    async likeHostFn(item) {
+      this.isLikeHost = !this.isLikeHost
+      if (this.isLikeHost) {
+        await likeComment(this.replyObj.com_id)
+        item.like_count++
+        this.$toast('点赞成功')
+      } else {
+        await cancelLikeComment(this.replyObj.com_id)
+        item.like_count--
+        this.$toast('取消成功')
+      }
+    },
     // 获取评论回复数据
     async getComments() {
       const res = await getComments('c', this.comid)
@@ -182,23 +200,25 @@ export default {
         this.$toast('取消点赞成功')
       }
     },
-    // 评论弹框
+    // 点击 写评论 出现弹框
     sendReply() {
       this.isWrite = true
     },
     // 点击发布评论回复
     async sendComReply() {
       const artid = this.$parent.art_id
-      console.log(this.comid)
+      // console.log(this.comid)
       await toCommentOrReply(this.comid, this.replyVal, artid)
       // 重新获取评论回复数据
-      this.getComments()
+      // this.getComments()
       // 关闭弹框
       this.isWrite = false
     }
   },
   created() {
     this.getComments()
+    this.isLikeHost = this.replyObj.is_liking
+    console.log(this.replyObj)
   }
 }
 </script>

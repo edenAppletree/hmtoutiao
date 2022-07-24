@@ -23,7 +23,7 @@
         <template #default>
           <van-icon
             name="good-job-o"
-            @click="likeFn(item.com_id)"
+            @click="likeFn(item)"
             :class="{ changeRed: isLike === true }"
           />
           <span> {{ item.like_count ? item.like_count : '赞' }}</span>
@@ -31,7 +31,11 @@
       </van-cell>
     </van-cell-group>
     <!-- 评论回复 弹框 组件 -->
-    <ReplyComment ref="popup" :replyObj="replyObj" :comid = 'item.com_id'></ReplyComment>
+    <ReplyComment
+      ref="popup"
+      :replyObj="replyObj"
+      :comid="item.com_id"
+    ></ReplyComment>
   </div>
 </template>
 
@@ -65,7 +69,7 @@ export default {
     }
   },
   methods: {
-    // 对文章或者评论进行评论
+    // 对文章或者评论进行评论---dui
     async toCommentOrReply() {
       const res = await toCommentOrReply(
         this.art_id,
@@ -73,22 +77,23 @@ export default {
         this.item.com_id
       )
       this.replyObj = res.data.data.new_obj
-      // console.log(this.replyObj)
-      // console.log(res.data.data)
     },
     // 弹窗
     showPopup(id) {
       this.$refs.popup.isShow = true
+      // 没有这一步的话回复页面不能确定评论id 无法正常渲染
       this.toCommentOrReply(id)
     },
     // 对评论点赞 或 取消点赞
-    async likeFn() {
+    async likeFn(item) {
       this.isLike = !this.isLike
       if (this.isLike) {
         await likeComment(this.item.com_id)
+        item.like_count++
         this.$toast('点赞成功')
       } else {
         await cancelLikeComment(this.item.com_id)
+        item.like_count--
         this.$toast('取消成功')
       }
     }
