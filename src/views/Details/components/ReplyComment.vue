@@ -1,7 +1,6 @@
 <template>
   <div>
     <van-popup
-      ref="popup"
       v-model="isShow"
       position="bottom"
       :style="{ height: '98%' }"
@@ -42,7 +41,7 @@
       <van-cell-group>
         <van-cell title="全部回复" />
       </van-cell-group>
-      <van-list
+      <!-- <van-list
         v-model="loading"
         :finished="finished"
         finished-text="没有更多了"
@@ -50,51 +49,164 @@
         offset="100"
       >
         <van-cell />
-      </van-list>
+      </van-list> -->
+      <!-- 回复 内容渲染 -->
+      <van-cell-group>
+        <van-cell
+          class="cell"
+          center
+          v-for="item in commentReply"
+          :key="item.com_id"
+        >
+          <template #title>
+            <div class="com_content">
+              <img :src="item.aut_photo" />
+              <div class="text">
+                <p class="username">{{ item.aut_name }}</p>
+                <p class="content">{{ item.content }}</p>
+                <div class="time_reply">
+                  <span class="time">{{ relativeTime1 }}</span>
+                  <span>
+                    <van-button class="btn"
+                      >回复 {{ item.reply_count }}</van-button
+                    >
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
+          <template #default>
+            <van-icon
+              name="good-job-o"
+              @click="likeReplyFn(item.com_id)"
+              :class="{ changeRed: isLike === true }"
+            />
+            <span> {{ item.like_count ? item.like_count : '赞' }}</span>
+          </template>
+        </van-cell>
+      </van-cell-group>
       <!-- 底部评论区 -->
       <van-tabbar>
         <van-tabbar-item>
-          <input type="text" class="iptCom" placeholder="评论" />
+          <input
+            type="text"
+            class="iptCom"
+            placeholder="评论"
+            @click="sendReply"
+          />
         </van-tabbar-item>
       </van-tabbar>
+      <van-popup v-model="isWrite" position="bottom" :style="{ height: '18%' }">
+        <div class="inputComReply">
+          <van-field
+            v-model="replyVal"
+            rows="2"
+            autosize
+            type="textarea"
+            maxlength="50"
+            placeholder="请输入评论"
+            show-word-limit
+            class="textarea"
+          />
+          <button class="sendCom" @click="sendComReply">发布</button>
+        </div>
+      </van-popup>
     </van-popup>
   </div>
 </template>
 
 <script>
 import dayjs from '@/utils/dayjs'
+import {
+  getComments,
+  toCommentOrReply,
+  likeComment,
+  cancelLikeComment
+} from '@/api'
 export default {
   data() {
     return {
       isShow: false,
       loading: false,
-      finished: false
+      finished: false,
+      commentReply: [],
+      isLike: '',
+      replyVal: '',
+      isWrite: false
     }
   },
   props: {
     replyObj: {
       type: Object,
       required: true
+    },
+    comid: {
+      type: String
+    },
+    artid: {
+      type: String
     }
   },
   computed: {
+    // 楼主的评论时间
     relativeTime() {
       return dayjs(this.replyObj.pubdate).fromNow()
     },
     commentListCount() {
       return this.$parent.item.reply_count
+    },
+    // 评论回复的时间 有错误
+    relativeTime1() {
+      return dayjs(this.commentReply.$children).fromNow()
     }
   },
   methods: {
     onLoad() {
       this.loading = false
       this.finished = false
+    },
+    // 获取评论回复数据
+    async getComments() {
+      const res = await getComments('c', this.comid)
+      this.commentReply = res.data.data.results
+      // console.log(this.commentReply)
+    },
+    // 对回复评论点赞 或 取消
+    async likeReplyFn(id) {
+      this.isLike = !this.isLike
+      if (this.isLike) {
+        await likeComment(id)
+        this.$toast('点赞成功')
+      } else {
+        await cancelLikeComment(id)
+        this.$toast('取消点赞成功')
+      }
+    },
+    // 评论弹框
+    sendReply() {
+      this.isWrite = true
+    },
+    // 点击发布评论回复
+    async sendComReply() {
+      const artid = this.$parent.art_id
+      console.log(this.comid)
+      await toCommentOrReply(this.comid, this.replyVal, artid)
+      // 重新获取评论回复数据
+      this.getComments()
+      // 关闭弹框
+      this.isWrite = false
     }
+  },
+  created() {
+    this.getComments()
   }
 }
 </script>
 
 <style lang="less" scoped>
+.changeRed {
+  color: red;
+}
 // 头部样式
 :deep(.van-nav-bar__content) {
   background-color: #fff !important;
@@ -164,6 +276,22 @@ export default {
     margin-left: -15px;
     font-size: 30px;
     text-align: center;
+  }
+}
+// 发布评论 弹窗样式
+.inputComReply {
+  display: flex;
+  .textarea {
+    flex: 7;
+    margin: 30px 10px 30px 30px;
+    background-color: #f5f7f9;
+  }
+  .sendCom {
+    flex: 1;
+    color: #cbdcee;
+    border: none;
+    background-color: #fff;
+    font-size: 28px;
   }
 }
 </style>

@@ -31,7 +31,7 @@
       </van-cell>
     </van-cell-group>
     <!-- 评论回复 弹框 组件 -->
-    <ReplyComment ref="popup" :replyObj="replyObj"></ReplyComment>
+    <ReplyComment ref="popup" :replyObj="replyObj" :comid = 'item.com_id'></ReplyComment>
   </div>
 </template>
 
@@ -65,7 +65,7 @@ export default {
     }
   },
   methods: {
-    // 获取对文章或者评论进行评论
+    // 对文章或者评论进行评论
     async toCommentOrReply() {
       const res = await toCommentOrReply(
         this.art_id,

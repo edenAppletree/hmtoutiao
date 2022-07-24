@@ -38,3 +38,28 @@ export const getUserInfo = () => {
     // }
   })
 }
+
+// 关注用户
+export const getFollowed = (target) => {
+  return request({
+    url: '/v1_0/user/followings',
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    data: {
+      target
+    }
+  })
+}
+
+// 取消关注用户
+export const cancelFollowed = (target) => {
+  return request({
+    url: `/v1_0/user/followings/${target}`,
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  })
+}

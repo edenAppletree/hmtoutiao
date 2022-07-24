@@ -19,9 +19,9 @@
           </div>
         </template>
         <template #default>
-          <van-button @click="isShow = !isShow">
-            <van-icon name="plus" v-show="isShow" />
-            {{ isShow ? '关注' : '已关注' }}</van-button
+          <van-button @click="getFollowed(contentObj.aut_id)">
+            <van-icon name="plus" v-show="!isShow" />
+            {{ isShow ? '已关注' : '关注' }}</van-button
           >
         </template>
       </van-cell>
@@ -61,9 +61,27 @@
           type="text"
           placeholder="写评论"
           class="ipt"
-          v-model="commentVal"
-          @input.enter="postComment(commentVal)"
+          @click="showPopup1"
         />
+        <van-popup
+          v-model="isWrite"
+          position="bottom"
+          :style="{ height: '18%' }"
+        >
+          <div class="inputCom">
+            <van-field
+              v-model="commentVal"
+              rows="2"
+              autosize
+              type="textarea"
+              maxlength="50"
+              placeholder="请输入评论"
+              show-word-limit
+              class="textarea"
+            />
+            <button class="sendCom" @click="sendCom">发布</button>
+          </div>
+        </van-popup>
       </van-tabbar-item>
       <van-tabbar-item
         icon="comment-o"
@@ -92,7 +110,10 @@ import {
   collectArt,
   cancelCollectArt,
   likeArt,
-  cancelLikeArt
+  cancelLikeArt,
+  toCommentOrReply,
+  getFollowed,
+  cancelFollowed
 } from '@/api'
 import dayjs from '@/utils/dayjs'
 import CommentStyle from '@/views/Details/components/CommentStyle'
@@ -103,11 +124,12 @@ export default {
       contentObj: {},
       loading: false,
       finished: false,
-      isShow: true,
+      isShow: '',
       commentList: [],
       commentVal: '',
       isCollect: '',
-      isLike: ''
+      isLike: '',
+      isWrite: false
     }
   },
   components: {
@@ -127,23 +149,41 @@ export default {
       this.id = this.$route.query.art_id
       const res = await getNewsDetails(this.id)
       this.contentObj = res.data.data
-      // console.log(this.contentObj)
+      console.log(this.contentObj)
       this.isCollect = this.contentObj.is_collected
       this.isLike = this.contentObj.attitude
+      this.isShow = this.contentObj.is_followed
     },
     onLoad() {
       this.loading = true
       this.finished = true
     },
-    // 获取评论或评论回复
+    // 关注用户 或 取消关注
+    async getFollowed(autid) {
+      console.log(autid)
+      this.isShow = !this.isShow
+      if (this.isShow) {
+        await getFollowed(autid)
+        this.$toast.success('关注作者成功')
+      } else {
+        await cancelFollowed(autid)
+        this.$toast.success('取消关注作者成功')
+      }
+    },
+    // 获取评论
     async getComments() {
       const res = await getComments('a', this.id)
       this.commentList = res.data.data.results
-      console.log(res.data.data)
+      // console.log(res.data.data)
     },
     // 发送评论
-    postComment(val) {
-      console.log(val)
+    async sendCom() {
+      // 对文章评论
+      await toCommentOrReply(this.id, this.commentVal)
+      // 刷新评论数据（重新获取评论数据）
+      this.getComments()
+      // 弹框下去
+      this.isWrite = false
     },
     // 收藏文章 或 取消收藏
     async collectFn(artId) {
@@ -171,15 +211,15 @@ export default {
         this.$toast.success('取消点赞成功')
         this.isLike = 0
       }
+    },
+    // 展示评论弹框
+    showPopup1() {
+      this.isWrite = true
     }
   },
   created() {
     this.getNewsDetails()
     this.getComments()
-    // 获取收藏列表
-    // console.log(getUserCollectionList())
-    // console.log(this.isCollect)
-    // console.log(this.isLike)
   }
 }
 </script>
@@ -280,6 +320,21 @@ export default {
       font-size: 30px;
       color: #a7a7af;
       text-align: center;
+    }
+    .inputCom {
+      display: flex;
+      .textarea {
+        flex: 7;
+        margin: 30px 10px 30px 30px;
+        background-color: #f5f7f9;
+      }
+      .sendCom {
+        flex: 1;
+        color: #cbdcee;
+        border: none;
+        background-color: #fff;
+        font-size: 28px;
+      }
     }
   }
   :deep(.van-icon) {
