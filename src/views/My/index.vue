@@ -22,7 +22,7 @@
           </van-col>
           <van-col span="11">
             <van-row class="code-row" type="flex" align="center" justify="end">
-              <van-button class="code-btn" size="mini" round=""
+              <van-button class="code-btn" size="mini" round @click="goEdit"
                 >编辑资料</van-button
               >
             </van-row>
@@ -125,6 +125,10 @@ export default {
       } catch (error) {
         this.$toast.fail('登录错误,请重新登录')
       }
+    },
+    // 跳去编辑资料页面
+    goEdit() {
+      this.$router.push('/edit')
     }
   }
 }
