@@ -27,10 +27,8 @@ export const editMyPhoto = (photo) => {
     url: '/v1_0/user/photo',
     method: 'PATCH',
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'multipart/form-data'
     },
-    data: {
-      photo
-    }
+    data: photo
   })
 }
