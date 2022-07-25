@@ -27,24 +27,26 @@
       </van-cell>
     </van-cell-group>
     <!-- 没有更多了~ 列表设置 -->
+    <!-- 文章内容 -->
+    <div
+      class="article-content markdown-body"
+      v-html="contentObj.content"
+    ></div>
+    <!-- 正文结束 -->
+    <div class="line">
+      <div></div>
+      <p>正文结束</p>
+      <div></div>
+    </div>
+    <!-- 评论区 组件 -->
     <van-list
       v-model="loading"
       :finished="finished"
       finished-text="没有更多了"
       @load="onLoad"
+      offset="100"
+      check
     >
-      <!-- 文章内容 -->
-      <div
-        class="article-content markdown-body"
-        v-html="contentObj.content"
-      ></div>
-      <!-- 正文结束 -->
-      <div class="line">
-        <div></div>
-        <p>正文结束</p>
-        <div></div>
-      </div>
-      <!-- 评论区 组件 -->
       <CommentStyle
         v-for="item in commentList"
         :key="item.com_id"
@@ -79,7 +81,7 @@
               show-word-limit
               class="textarea"
             />
-            <button class="sendCom" @click="sendCom">发布</button>
+            <button class="sendCom" @click="sendCom()">发布</button>
           </div>
         </van-popup>
       </van-tabbar-item>
@@ -155,8 +157,13 @@ export default {
       this.isShow = this.contentObj.is_followed
     },
     onLoad() {
-      this.loading = true
-      this.finished = true
+      if (this.commentList.length <= 10) {
+        this.loading = true
+        this.finished = true
+      } else {
+        this.loading = false
+      }
+      // this.finished = true
     },
     // 关注用户 或 取消关注
     async getFollowed(autid) {
@@ -178,12 +185,18 @@ export default {
     },
     // 发送评论
     async sendCom() {
+      if (this.commentVal.trim().length === 0) {
+        return this.$toast('评论不能为空')
+      }
       // 对文章评论
       await toCommentOrReply(this.id, this.commentVal)
       // 刷新评论数据（重新获取评论数据）
       this.getComments()
+      this.contentObj.comm_count++
       // 弹框下去
       this.isWrite = false
+      // 输入框置空
+      this.commentVal = ''
     },
     // 收藏文章 或 取消收藏
     async collectFn(artId) {

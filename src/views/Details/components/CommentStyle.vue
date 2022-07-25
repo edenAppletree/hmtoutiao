@@ -1,6 +1,7 @@
 <template>
   <div>
     <!-- 评论区 -->
+
     <van-cell-group>
       <van-cell class="cell" center>
         <template #title>
@@ -30,18 +31,20 @@
         </template>
       </van-cell>
     </van-cell-group>
+
     <!-- 评论回复 弹框 组件 -->
     <ReplyComment
       ref="popup"
       :replyObj="replyObj"
       :comid="item.com_id"
+      :item="item"
     ></ReplyComment>
   </div>
 </template>
 
 <script>
 import dayjs from '@/utils/dayjs'
-import { toCommentOrReply, likeComment, cancelLikeComment } from '@/api'
+import { likeComment, cancelLikeComment } from '@/api'
 // 引入组件
 import ReplyComment from '@/views/Details/components/ReplyComment'
 export default {
@@ -69,20 +72,9 @@ export default {
     }
   },
   methods: {
-    // 对文章或者评论进行评论---dui
-    async toCommentOrReply() {
-      const res = await toCommentOrReply(
-        this.art_id,
-        this.item.content,
-        this.item.com_id
-      )
-      this.replyObj = res.data.data.new_obj
-    },
     // 弹窗
-    showPopup(id) {
+    showPopup() {
       this.$refs.popup.isShow = true
-      // 没有这一步的话回复页面不能确定评论id 无法正常渲染
-      this.toCommentOrReply(id)
     },
     // 对评论点赞 或 取消点赞
     async likeFn(item) {

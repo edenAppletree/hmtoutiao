@@ -28,7 +28,7 @@ export const toCommentOrReply = (target, content, artId) => {
     data: {
       target,
       content,
-      artId
+      art_id: artId
     }
   })
 }

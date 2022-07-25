@@ -16,10 +16,10 @@
         <van-cell class="cell" center>
           <template #title>
             <div class="com_content">
-              <img :src="replyObj.aut_photo" />
+              <img :src="item.aut_photo" />
               <div class="text">
-                <p class="username">{{ replyObj.aut_name }}</p>
-                <p class="content">{{ replyObj.content }}</p>
+                <p class="username">{{ item.aut_name }}</p>
+                <p class="content">{{ item.content }}</p>
                 <div class="time_reply">
                   <span class="time">{{ relativeTime }}</span>
                   <span>
@@ -34,10 +34,10 @@
           <template #default>
             <van-icon
               name="good-job-o"
-              @click="likeHostFn(replyObj)"
+              @click="likeHostFn(item)"
               :class="{ changeRed: isLikeHost === true }"
             />
-            <span> {{ replyObj.like_count ? replyObj.like_count : '赞' }}</span>
+            <span> {{ item.like_count ? item.like_count : '赞' }}</span>
           </template>
         </van-cell>
       </van-cell-group>
@@ -69,7 +69,7 @@
                 <p class="username">{{ item.aut_name }}</p>
                 <p class="content">{{ item.content }}</p>
                 <div class="time_reply">
-                  <span class="time">{{ relativeTime1 }}</span>
+                  <span class="time">{{ relativeTime1(item.pubdate) }}</span>
                   <span>
                     <van-button class="btn"
                       >回复 {{ item.reply_count }}</van-button
@@ -141,28 +141,22 @@ export default {
     }
   },
   props: {
-    replyObj: {
+    item: {
       type: Object,
       required: true
     },
     comid: {
-      type: String
-    },
-    artid: {
       type: String
     }
   },
   computed: {
     // 楼主的评论时间
     relativeTime() {
-      return dayjs(this.replyObj.pubdate).fromNow()
+      return dayjs(this.item.pubdate).fromNow()
     },
+    // 回复数量
     commentListCount() {
-      return this.$parent.item.reply_count
-    },
-    // 评论回复的时间 有错误
-    relativeTime1() {
-      return dayjs(this.commentReply.$children).fromNow()
+      return this.item.reply_count
     }
   },
   methods: {
@@ -170,15 +164,19 @@ export default {
       this.loading = false
       this.finished = false
     },
+    // 评论回复的时间 有错误
+    relativeTime1(time) {
+      return dayjs(time).fromNow()
+    },
     // 对楼主评论点赞
     async likeHostFn(item) {
       this.isLikeHost = !this.isLikeHost
       if (this.isLikeHost) {
-        await likeComment(this.replyObj.com_id)
+        await likeComment(this.item.com_id)
         item.like_count++
         this.$toast('点赞成功')
       } else {
-        await cancelLikeComment(this.replyObj.com_id)
+        await cancelLikeComment(this.item.com_id)
         item.like_count--
         this.$toast('取消成功')
       }
@@ -187,7 +185,6 @@ export default {
     async getComments() {
       const res = await getComments('c', this.comid)
       this.commentReply = res.data.data.results
-      // console.log(this.commentReply)
     },
     // 对回复评论点赞 或 取消
     async likeReplyFn(id) {
@@ -207,18 +204,20 @@ export default {
     // 点击发布评论回复
     async sendComReply() {
       const artid = this.$parent.art_id
-      // console.log(this.comid)
+      if (this.replyVal.trim().length === 0) {
+        return this.$toast('评论不能为空')
+      }
       await toCommentOrReply(this.comid, this.replyVal, artid)
       // 重新获取评论回复数据
-      // this.getComments()
+      this.getComments()
+      this.replyVal = ''
       // 关闭弹框
       this.isWrite = false
     }
   },
   created() {
     this.getComments()
-    this.isLikeHost = this.replyObj.is_liking
-    console.log(this.replyObj)
+    this.isLikeHost = this.item.is_liking
   }
 }
 </script>
