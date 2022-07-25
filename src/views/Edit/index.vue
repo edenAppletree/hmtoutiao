@@ -9,18 +9,31 @@
     />
     <!-- 内容 -->
     <!-- 头像部分 -->
-    <van-cell title="头像" is-link @click="$refs.file.click()">
-      <img :src="myInfo.photo" />
+    <van-cell title="头像" is-link>
+      <van-uploader
+        v-model="fileList"
+        :style="{ display: 'block' }"
+        :after-read="afterRead"
+        :preview-image="false"
+        :showIndex="false"
+      >
+        <template #default>
+          <van-image :src="myInfo.photo" width="30px" height="30px" round />
+        </template>
+      </van-uploader>
     </van-cell>
-    <input
-      type="file"
-      hidden
-      ref="file"
-      name="file"
-      class="file"
-      accept=".png,.jpg"
-    />
-    <UpdatePhoto :photo="photo" ref="popup"></UpdatePhoto>
+    <!-- 弹出层 -->
+    <van-popup
+      v-model="popshow"
+      :style="{ height: '100%', width: '100%', backgroundColor: '#333' }"
+    >
+      <UpdatePhoto
+        :photo="photo"
+        @updateAvator="updateAvator"
+        @closePop="closePop"
+      >
+      </UpdatePhoto>
+    </van-popup>
     <!-- 昵称部分 -->
     <van-cell title="昵称" is-link @click="showPopup">{{
       myInfo.name
@@ -82,6 +95,7 @@ import moment from 'moment'
 export default {
   data() {
     return {
+      popshow: false,
       myInfo: {},
       show: false,
       message: '',
@@ -98,25 +112,12 @@ export default {
       maxDate: new Date(2025, 10, 1),
       currentDate: new Date(),
       show2: false,
-      photo: {}
+      photo: '',
+      fileList: []
     }
   },
   created() {
     this.getMyInfo()
-  },
-  mounted() {
-    this.$refs.file.addEventListener('change', (e) => {
-      const file = e.target.files[0]
-      const fr = new FileReader()
-      // 转换为url地址
-      fr.readAsDataURL(file)
-
-      fr.onload = (e) => {
-        this.photo = e.target.result
-        // console.log(this.photo)
-        this.$refs.popup.show = true
-      }
-    })
   },
   components: {
     UpdatePhoto
@@ -130,6 +131,20 @@ export default {
       const res = await getMyInfo()
       this.myInfo = res.data.data
       //   console.log(this.myInfo)
+    },
+    // 更改头像
+    afterRead(file) {
+      // 此时可以自行将文件上传至服务器
+      // console.log(file)
+      this.photo = file.content
+      this.popshow = true
+    },
+    updateAvator(photo) {
+      this.myInfo.photo = photo
+    },
+    // 关闭弹窗
+    closePop() {
+      this.popshow = false
     },
     // 昵称部分
     showPopup() {
@@ -211,5 +226,8 @@ img {
   width: 50px;
   height: 50px;
   border-radius: 50%;
+}
+:deep(.van-uploader__wrapper) {
+  padding-left: 250px;
 }
 </style>

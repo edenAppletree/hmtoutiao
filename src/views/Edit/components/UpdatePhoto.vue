@@ -1,12 +1,12 @@
 <template>
   <div>
-    <van-popup v-model="show">
+    <div class="content">
       <img :src="photo" ref="img" />
       <div class="btn">
-        <button>取消</button>
+        <button @click="cancel">取消</button>
         <button @click="confirm">完成</button>
       </div>
-    </van-popup>
+    </div>
   </div>
 </template>
 
@@ -15,35 +15,49 @@ import Cropper from 'cropperjs'
 import 'cropperjs/dist/cropper.css'
 import { editMyPhoto } from '@/api'
 export default {
-  data() {
-    return {
-      show: false
-    }
-  },
   props: ['photo'],
   mounted() {
-    const img = this.refs.img
-    this.myCropper = new Cropper(img, {})
+    const img = this.$refs.img
+    this.myCropper = new Cropper(img, {
+      viewMode: 1,
+      background: false,
+      highlight: false,
+      scalable: true
+    })
   },
   methods: {
-    showPopup() {
-      this.show = true
-    },
     confirm() {
       const fm = new FormData()
-      this.myCropper.getCroppedCanvas().toBlob(function (blob) {
+      // console.log(this)
+      this.myCropper.getCroppedCanvas().toBlob(async (blob) => {
         fm.append('photo', blob)
 
-        editMyPhoto(fm)
+        console.log(this.photo)
+        // console.log(this.myCropper.getCroppedCanvas())
+        const res = await editMyPhoto(fm)
+        // 返回数据拿到图片地址返回给父组件进行页面渲染
+        this.$emit('updateAvator', res.data.data.photo)
+        // this.$parent.popshow = false
+        this.$emit('closePop')
       })
+    },
+    cancel() {
+      // this.$parent.popshow = false
+      console.log(1)
+      console.log(this.$parent)
+      this.$emit('closePop')
     }
   }
 }
 </script>
 
 <style lang="less" scoped>
+.content {
+  width: 100%;
+  margin-top: 50%;
+}
 img {
-  height: 500px;
+  width: 100%;
 }
 .btn {
   position: fixed;
@@ -52,7 +66,11 @@ img {
   width: 100%;
   display: flex;
   justify-content: space-between;
-  border: none;
   color: #ffffff;
+  button {
+    border: none;
+    font-size: 34px;
+    background-color: transparent;
+  }
 }
 </style>
